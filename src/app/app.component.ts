@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { PageEvent } from '@angular/material/paginator';
 import {
   BehaviorSubject,
   combineLatest,
@@ -26,7 +27,7 @@ export class AppComponent {
   racesPerSeasonResults$: Observable<PagingResult<Race>>;
   racesPerSeason$: Observable<Race[]>;
   totalRacesPerSeason$: Observable<number>;
-  racesPageNumberSubject = new BehaviorSubject(1);
+  racesPageNumberSubject = new BehaviorSubject(0);
   racesPageNumber$ = this.racesPageNumberSubject.asObservable();
   racesItemsPerPageSubject = new BehaviorSubject(10);
   racesItemsPerPage$ = this.racesItemsPerPageSubject.asObservable();
@@ -34,10 +35,11 @@ export class AppComponent {
   driversPerSeasonResults$: Observable<PagingResult<Driver>>;
   driversPerSeason$: Observable<Driver[]>;
   totalDriversPerSeason$: Observable<number>;
-  driversPageNumberSubject = new BehaviorSubject(1);
+  driversPageNumberSubject = new BehaviorSubject(0);
   driversPageNumber$ = this.driversPageNumberSubject.asObservable();
   driversItemsPerPageSubject = new BehaviorSubject(10);
   driversItemsPerPage$ = this.driversItemsPerPageSubject.asObservable();
+  driversOffset$: Observable<number>;
 
   constructor(api: F1ApiService) {
     this.racesPerSeasonResults$ = combineLatest([
@@ -48,7 +50,7 @@ export class AppComponent {
       switchMap(([season, pageNumber, itemsPerPage]) => {
         return api.GetRacesForSeason(
           season,
-          (pageNumber - 1) * itemsPerPage,
+          pageNumber * itemsPerPage,
           itemsPerPage
         );
       })
@@ -73,7 +75,7 @@ export class AppComponent {
       switchMap(([season, pageNumber, itemsPerPage]) => {
         return api.GetDriversForSeason(
           season,
-          (pageNumber - 1) * itemsPerPage,
+          pageNumber * itemsPerPage,
           itemsPerPage
         );
       })
@@ -89,15 +91,26 @@ export class AppComponent {
         return value.totalElements;
       })
     );
+
+    this.driversOffset$ = combineLatest([
+      this.driversItemsPerPage$,
+      this.driversPageNumber$,
+    ]).pipe(
+      map(([a, b]) => {
+        return a * b;
+      })
+    );
   }
 
   seasonChanged(season: string) {
     this.selectedSeasonSubject.next(season);
   }
-  raceItemsPerPageChanged(itemsPerPage: number) {
-    this.racesItemsPerPageSubject.next(itemsPerPage);
+  raceItemsPerPageChanged(pageEvent: PageEvent) {
+    this.racesItemsPerPageSubject.next(pageEvent.pageSize);
+    this.racesPageNumberSubject.next(pageEvent.pageIndex);
   }
-  driverItemsPerPageChanged(itemsPerPage: number) {
-    this.driversItemsPerPageSubject.next(itemsPerPage);
+  driverItemsPerPageChanged(pageEvent: PageEvent) {
+    this.driversItemsPerPageSubject.next(pageEvent.pageSize);
+    this.driversPageNumberSubject.next(pageEvent.pageIndex);
   }
 }
