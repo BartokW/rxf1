@@ -5,10 +5,15 @@ import { AppComponent } from './app.component';
 import { F1ApiService } from './f1-api.service';
 
 describe('AppComponent', () => {
+  let f1ApiServiceSpy: jasmine.SpyObj<F1ApiService>;
   beforeEach(async () => {
+    f1ApiServiceSpy = jasmine.createSpyObj('F1ApiService', [
+      'GetDriversForSeason',
+      'GetRacesForSeason',
+    ]);
     await TestBed.configureTestingModule({
       imports: [RouterTestingModule, HttpClientModule],
-      providers: [F1ApiService],
+      providers: [{ provide: F1ApiService, useValue: f1ApiServiceSpy }],
       declarations: [AppComponent],
     }).compileComponents();
   });

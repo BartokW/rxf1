@@ -9,7 +9,7 @@
 </ng-container>
 <h1>Races</h1>
 <table *ngIf="racesPerSeason$ | async as racesPerSeason">
-  <tr *ngFor="let race of racesPerSeason.data">
+  <tr *ngFor="let race of racesPerSeason">
     <td>{{ race.round }}</td>
     <td>{{ race.raceName }}</td>
     <!-- <td>{{ race.Circuit }}</td> -->
@@ -20,7 +20,7 @@
 <br />
 <h1>Drivers</h1>
 <table *ngIf="driversPerSeason$ | async as driversPerSeason">
-  <tr *ngFor="let driver of driversPerSeason.data">
+  <tr *ngFor="let driver of driversPerSeason">
     <td>{{ driver.driverId }}</td>
     <td>{{ driver.permanentNumber }}</td>
     <td>{{ driver.code }}</td>
