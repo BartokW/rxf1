@@ -1,3 +1,5 @@
+import { F1Data } from './page';
+
 export interface Driver {
   driverId: string;
   permanentNumber: string;
@@ -14,16 +16,6 @@ export interface DriverTable {
   Drivers: Driver[];
 }
 
-export interface DriverData {
-  xmlns: string;
-  series: string;
-  url: string;
-  limit: string;
-  offset: string;
-  total: string;
+export interface DriverData extends F1Data {
   DriverTable: DriverTable;
-}
-
-export interface DriverRootObject {
-  MRData: DriverData;
 }
