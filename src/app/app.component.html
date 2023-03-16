@@ -3,55 +3,114 @@
     *ngFor="let season of seasons"
     (click)="seasonChanged(season)"
     [disabled]="season == selectedSeason"
+    mat-raised-button
   >
     {{ season }}
   </button>
 </ng-container>
-<h1>Races</h1>
-<table *ngIf="racesPerSeason$ | async as racesPerSeason">
-  <tr *ngFor="let race of racesPerSeason">
-    <td>{{ race.round }}</td>
-    <td>{{ race.raceName }}</td>
-    <!-- <td>{{ race.Circuit }}</td> -->
-    <td>{{ race.date }}</td>
-    <td>{{ race.time }}</td>
-  </tr>
-  <tr>
-    <td colspan="4">
-      <mat-paginator
-        [length]="totalRacesPerSeason$ | async"
-        [pageSize]="racesItemsPerPage$ | async"
-        [pageSizeOptions]="pageSizeOptions"
-        (page)="raceItemsPerPageChanged($event)"
-      >
-      </mat-paginator>
-    </td>
-  </tr>
-</table>
 <br />
-<h1>Drivers</h1>
-<table *ngIf="driversPerSeason$ | async as driversPerSeason">
-  <tr *ngFor="let driver of driversPerSeason; let idx = index">
-    <td>{{ ((driversOffset$ | async) ?? 0) + idx + 1 }}</td>
-    <td>{{ driver.driverId }}</td>
-    <td>{{ driver.permanentNumber }}</td>
-    <td>{{ driver.code }}</td>
-    <td>{{ driver.givenName }}</td>
-    <td>{{ driver.familyName }}</td>
-    <td>{{ driver.dateOfBirth }}</td>
-    <td>{{ driver.nationality }}</td>
-  </tr>
-  <tr>
-    <td colspan="8">
-      <mat-paginator
-        [length]="totalDriversPerSeason$ | async"
-        [pageSize]="driversItemsPerPage$ | async"
-        [pageSizeOptions]="pageSizeOptions"
-        (page)="driverItemsPerPageChanged($event)"
-      >
-      </mat-paginator>
-    </td>
-  </tr>
-</table>
+<button
+  (click)="showRaces = !showRaces"
+  [disabled]="showRaces"
+  mat-raised-button
+>
+  Races
+</button>
+<button
+  (click)="showRaces = !showRaces"
+  [disabled]="!showRaces"
+  mat-raised-button
+>
+  Drivers
+</button>
 
+<ng-container *ngIf="!showRaces">
+  <h1>Drivers</h1>
+  <table *ngIf="driversPerSeason$ | async as driversPerSeason">
+    <tr>
+      <th>#</th>
+      <th>Id</th>
+      <th>Number</th>
+      <th>Code</th>
+      <th>Name</th>
+      <th>Nationality</th>
+    </tr>
+    <tr *ngFor="let driver of driversPerSeason; let idx = index">
+      <td>{{ ((driversOffset$ | async) ?? 0) + idx + 1 }}</td>
+      <td>{{ driver.driverId }}</td>
+      <td>{{ driver.permanentNumber }}</td>
+      <td>{{ driver.code }}</td>
+      <td>{{ driver.familyName }} {{ driver.givenName }}</td>
+      <td>{{ driver.nationality }}</td>
+    </tr>
+    <tr>
+      <td colspan="6">
+        <mat-paginator
+          [length]="totalDriversPerSeason$ | async"
+          [pageSize]="driversItemsPerPage$ | async"
+          [pageSizeOptions]="pageSizeOptions"
+          (page)="driverItemsPerPageChanged($event)"
+        >
+        </mat-paginator>
+      </td>
+    </tr>
+  </table>
+</ng-container>
+
+<ng-container *ngIf="showRaces">
+  <h1>Races</h1>
+  <table *ngIf="racesPerSeason$ | async as racesPerSeason">
+    <tr>
+      <th>Round</th>
+      <th>Race Name</th>
+      <th>Date</th>
+      <th>Time</th>
+      <th>&nbsp;</th>
+    </tr>
+    <tr *ngFor="let race of racesPerSeason">
+      <td>{{ race.round }}</td>
+      <td>{{ race.raceName }}</td>
+      <!-- <td>{{ race.Circuit }}</td> -->
+      <td>{{ race.date | date }}</td>
+      <td>{{ race.time }}</td>
+      <td>
+        <button mat-raised-button (click)="setSelectedRace(race.round)">
+          Details
+        </button>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="5">
+        <mat-paginator
+          [length]="totalRacesPerSeason$ | async"
+          [pageSize]="racesItemsPerPage$ | async"
+          [pageSizeOptions]="pageSizeOptions"
+          (page)="raceItemsPerPageChanged($event)"
+        >
+        </mat-paginator>
+      </td>
+    </tr>
+  </table>
+  <ng-container *ngIf="(qualifyingResults$ | async)?.length">
+    <h2>Qualifying Results</h2>
+    <table>
+      <tr>
+        <th>Position</th>
+        <th>Number</th>
+        <th>Name</th>
+        <th>Q1</th>
+        <th>Q2</th>
+        <th>Q3</th>
+      </tr>
+      <tr *ngFor="let result of qualifyingResults$ | async">
+        <td>{{ result.position }}</td>
+        <td>{{ result.number }}</td>
+        <td>{{ result.Driver.givenName }} {{ result.Driver.familyName }}</td>
+        <td>{{ result.Q1 }}</td>
+        <td>{{ result.Q2 }}</td>
+        <td>{{ result.Q3 }}</td>
+      </tr>
+    </table>
+  </ng-container>
+</ng-container>
 <router-outlet></router-outlet>

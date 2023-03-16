@@ -5,12 +5,13 @@ import {
   combineLatest,
   map,
   Observable,
+  of,
   switchMap,
 } from 'rxjs';
 import { F1ApiService } from './f1-api.service';
 import { Driver } from './models/driver';
 import { PagingResult } from './models/page';
-import { Race } from './models/race';
+import { QualifyingResult, Race } from './models/race';
 
 @Component({
   selector: 'app-root',
@@ -21,8 +22,12 @@ export class AppComponent {
   title = 'rxf1';
   seasons = ['2018', '2019', '2020', '2021', '2022'];
   pageSizeOptions = [10, 15, 25];
+  showRaces = true;
   selectedSeasonSubject = new BehaviorSubject('2018');
   selectedSeason$ = this.selectedSeasonSubject.asObservable();
+
+  selectedRaceSubject: BehaviorSubject<string> = new BehaviorSubject('');
+  selectedRace$ = this.selectedRaceSubject.asObservable();
 
   racesPerSeasonResults$: Observable<PagingResult<Race>>;
   racesPerSeason$: Observable<Race[]>;
@@ -31,6 +36,8 @@ export class AppComponent {
   racesPageNumber$ = this.racesPageNumberSubject.asObservable();
   racesItemsPerPageSubject = new BehaviorSubject(10);
   racesItemsPerPage$ = this.racesItemsPerPageSubject.asObservable();
+
+  qualifyingResults$: Observable<QualifyingResult[]>;
 
   driversPerSeasonResults$: Observable<PagingResult<Driver>>;
   driversPerSeason$: Observable<Driver[]>;
@@ -100,10 +107,26 @@ export class AppComponent {
         return a * b;
       })
     );
+
+    this.qualifyingResults$ = combineLatest([
+      this.selectedSeason$,
+      this.selectedRace$,
+    ]).pipe(
+      switchMap(([season, round]) => {
+        let races: Observable<QualifyingResult[]> = of([]);
+        if (round != '') {
+          races = api.GetQualifyingForRace(season, round);
+        }
+        return races;
+      })
+    );
   }
 
   seasonChanged(season: string) {
     this.selectedSeasonSubject.next(season);
+    this.racesPageNumberSubject.next(0);
+    this.driversPageNumberSubject.next(0);
+    this.selectedRaceSubject.next('');
   }
   raceItemsPerPageChanged(pageEvent: PageEvent) {
     this.racesItemsPerPageSubject.next(pageEvent.pageSize);
@@ -112,5 +135,8 @@ export class AppComponent {
   driverItemsPerPageChanged(pageEvent: PageEvent) {
     this.driversItemsPerPageSubject.next(pageEvent.pageSize);
     this.driversPageNumberSubject.next(pageEvent.pageIndex);
+  }
+  setSelectedRace(round: string) {
+    this.selectedRaceSubject.next(round);
   }
 }

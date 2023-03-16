@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { catchError, map, Observable, shareReplay, throwError } from 'rxjs';
 import { Driver, DriverData } from './models/driver';
-import { Race, RaceData } from './models/race';
+import { QualifyingResult, Race, RaceData } from './models/race';
 import { F1Root, PagingResult } from './models/page';
 import { StandingsData, StandingsList } from './models/standings';
 
@@ -78,21 +78,17 @@ export class F1ApiService {
 
   public GetQualifyingForRace(
     year: string,
-    round: string,
-    offset: number = 0,
-    limit: number = 10
-  ): Observable<PagingResult<Race>> {
+    round: string
+  ): Observable<QualifyingResult[]> {
     //http://ergast.com/api/f1/{{year}}/{{round}}/qualifying.json
     return this.http
       .get<F1Root<RaceData>>(
-        `http://ergast.com/api/f1/${year}/${round}/qualifying.json?limit=${limit}&offset=${offset}`
+        `http://ergast.com/api/f1/${year}/${round}/qualifying.json`
       )
       .pipe(
         map((root) => {
-          return {
-            data: root.MRData.RaceTable.Races,
-            totalElements: parseInt(root.MRData.total),
-          } as PagingResult<Race>;
+          return root.MRData.RaceTable.Races[0]
+            .QualifyingResults as QualifyingResult[];
         }),
         shareReplay(),
         catchError(this.handleError)

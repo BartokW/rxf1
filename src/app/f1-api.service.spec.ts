@@ -92,8 +92,27 @@ describe('F1ApiService', () => {
   it('should get qualifying results', (done) => {
     let sampleRaces: F1Root<RaceData> = {
       MRData: {
-        total: '10',
-        RaceTable: { season: '1', Races: [] },
+        total: '1',
+        RaceTable: {
+          season: '1',
+          Races: [
+            {
+              QualifyingResults: [],
+              season: '1',
+              round: '',
+              url: '',
+              raceName: '',
+              Circuit: {
+                circuitId: '',
+                url: '',
+                circuitName: '',
+                Location: { lat: '', long: '', locality: '', country: '' },
+              },
+              date: '',
+              time: '',
+            },
+          ],
+        },
         xmlns: '',
         series: '',
         url: '',
@@ -104,8 +123,8 @@ describe('F1ApiService', () => {
     httpClientSpy.get.and.returnValue(of(sampleRaces));
     service.GetQualifyingForRace('2018', '1').subscribe((result) => {
       expect(result).toBeTruthy();
-      expect(result.data).toEqual([]);
-      expect(result.totalElements).toEqual(10);
+      expect(result).toEqual([]);
+
       done();
     });
   });
