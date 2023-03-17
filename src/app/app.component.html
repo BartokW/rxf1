@@ -74,8 +74,23 @@
       <td>{{ race.date | date }}</td>
       <td>{{ race.time }}</td>
       <td>
-        <button mat-raised-button (click)="setSelectedRace(race.round)">
-          Details
+        <button
+          mat-raised-button
+          (click)="setSelectedRace(race.round, 'qualifying')"
+        >
+          Qualifying
+        </button>
+        <button
+          mat-raised-button
+          (click)="setSelectedRace(race.round, 'standings')"
+        >
+          Standings
+        </button>
+        <button
+          mat-raised-button
+          (click)="setSelectedRace(race.round, 'results')"
+        >
+          Results
         </button>
       </td>
     </tr>
@@ -91,8 +106,9 @@
       </td>
     </tr>
   </table>
-  <ng-container *ngIf="(qualifyingResults$ | async)?.length">
-    <h2>Qualifying Results</h2>
+
+  <ng-container *ngIf="showDetailType == 'qualifying'">
+    <h2>Qualifying Results for {{ selectedRaceName$ | async }}</h2>
     <table>
       <tr>
         <th>Position</th>
@@ -109,6 +125,55 @@
         <td>{{ result.Q1 }}</td>
         <td>{{ result.Q2 }}</td>
         <td>{{ result.Q3 }}</td>
+      </tr>
+    </table>
+  </ng-container>
+  <ng-container *ngIf="showDetailType == 'standings'">
+    <h2>Standings after {{ selectedRaceName$ | async }}</h2>
+    <table>
+      <tr>
+        <th>Position</th>
+        <th>Points</th>
+        <th>Wins</th>
+        <th>Name</th>
+        <th>Number</th>
+      </tr>
+      <tr *ngFor="let result of driverStandings$ | async">
+        <td>{{ result.position }}</td>
+        <td>{{ result.points }}</td>
+        <td>{{ result.wins }}</td>
+        <td>{{ result.Driver.givenName }} {{ result.Driver.familyName }}</td>
+        <td>{{ result.Driver.permanentNumber }}</td>
+      </tr>
+    </table>
+  </ng-container>
+  <ng-container *ngIf="showDetailType == 'results'">
+    <h2>{{ selectedRaceName$ | async }} Results</h2>
+    <p>
+      Number Finished: {{ numFinished$ | async }}<br />
+      Number Accidents: {{ numAccident$ | async }}<br />
+      Number +1 Lap: {{ numPlusOne$ | async }}<br />
+    </p>
+    <table>
+      <tr>
+        <th>Position</th>
+        <th>Number</th>
+        <th>Points</th>
+        <th>Name</th>
+        <th>Grid</th>
+        <th>Laps</th>
+        <th>Status</th>
+        <th>Time</th>
+      </tr>
+      <tr *ngFor="let result of raceResults$ | async">
+        <td>{{ result.position }}</td>
+        <td>{{ result.number }}</td>
+        <td>{{ result.points }}</td>
+        <td>{{ result.Driver.givenName }} {{ result.Driver.familyName }}</td>
+        <td>{{ result.grid }}</td>
+        <td>{{ result.laps }}</td>
+        <td>{{ result.status }}</td>
+        <td>{{ result.Time?.time }}</td>
       </tr>
     </table>
   </ng-container>

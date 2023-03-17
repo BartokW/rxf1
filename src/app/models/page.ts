@@ -15,3 +15,5 @@ export interface F1Data {
 export interface F1Root<T> {
   MRData: T;
 }
+
+export type DetailType = '' | 'qualifying' | 'standings' | 'results';

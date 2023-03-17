@@ -2,9 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { catchError, map, Observable, shareReplay, throwError } from 'rxjs';
 import { Driver, DriverData } from './models/driver';
-import { QualifyingResult, Race, RaceData } from './models/race';
+import { QualifyingResult, Race, RaceData, Result } from './models/race';
 import { F1Root, PagingResult } from './models/page';
-import { StandingsData, StandingsList } from './models/standings';
+import {
+  DriverStanding,
+  StandingsData,
+  StandingsList,
+} from './models/standings';
 
 @Injectable({
   providedIn: 'root',
@@ -56,20 +60,15 @@ export class F1ApiService {
 
   public GetDriverStandingsAfterRace(
     year: string,
-    round: string,
-    offset: number = 0,
-    limit: number = 10
-  ): Observable<PagingResult<StandingsList>> {
+    round: string
+  ): Observable<DriverStanding[]> {
     return this.http
       .get<F1Root<StandingsData>>(
-        `http://ergast.com/api/f1/${year}/${round}/driverStandings.json?limit=${limit}&offset=${offset}`
+        `http://ergast.com/api/f1/${year}/${round}/driverStandings.json`
       )
       .pipe(
         map((root) => {
-          return {
-            data: root.MRData.StandingsTable.StandingsLists,
-            totalElements: parseInt(root.MRData.total),
-          } as PagingResult<StandingsList>;
+          return root.MRData.StandingsTable.StandingsLists[0].DriverStandings;
         }),
         shareReplay(),
         catchError(this.handleError)
@@ -95,23 +94,15 @@ export class F1ApiService {
       );
   }
 
-  public GetRaceResults(
-    year: string,
-    round: string,
-    offset: number = 0,
-    limit: number = 10
-  ): Observable<PagingResult<Race>> {
+  public GetRaceResults(year: string, round: string): Observable<Result[]> {
     //http://ergast.com/api/f1/2018/2/results.json
     return this.http
       .get<F1Root<RaceData>>(
-        `http://ergast.com/api/f1/${year}/${round}/results.json?limit=${limit}&offset=${offset}`
+        `http://ergast.com/api/f1/${year}/${round}/results.json`
       )
       .pipe(
         map((root) => {
-          return {
-            data: root.MRData.RaceTable.Races,
-            totalElements: parseInt(root.MRData.total),
-          } as PagingResult<Race>;
+          return root.MRData.RaceTable.Races[0].Results as Result[];
         }),
         shareReplay(),
         catchError(this.handleError)

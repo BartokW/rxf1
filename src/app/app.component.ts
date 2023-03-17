@@ -10,8 +10,9 @@ import {
 } from 'rxjs';
 import { F1ApiService } from './f1-api.service';
 import { Driver } from './models/driver';
-import { PagingResult } from './models/page';
-import { QualifyingResult, Race } from './models/race';
+import { DetailType, PagingResult } from './models/page';
+import { QualifyingResult, Race, Result } from './models/race';
+import { DriverStanding } from './models/standings';
 
 @Component({
   selector: 'app-root',
@@ -26,8 +27,11 @@ export class AppComponent {
   selectedSeasonSubject = new BehaviorSubject('2018');
   selectedSeason$ = this.selectedSeasonSubject.asObservable();
 
+  showDetailType: DetailType = '';
+
   selectedRaceSubject: BehaviorSubject<string> = new BehaviorSubject('');
   selectedRace$ = this.selectedRaceSubject.asObservable();
+  selectedRaceName$: Observable<string>;
 
   racesPerSeasonResults$: Observable<PagingResult<Race>>;
   racesPerSeason$: Observable<Race[]>;
@@ -38,6 +42,11 @@ export class AppComponent {
   racesItemsPerPage$ = this.racesItemsPerPageSubject.asObservable();
 
   qualifyingResults$: Observable<QualifyingResult[]>;
+  driverStandings$: Observable<DriverStanding[]>;
+  raceResults$: Observable<Result[]>;
+  numFinished$: Observable<number>;
+  numAccident$: Observable<number>;
+  numPlusOne$: Observable<number>;
 
   driversPerSeasonResults$: Observable<PagingResult<Driver>>;
   driversPerSeason$: Observable<Driver[]>;
@@ -120,6 +129,62 @@ export class AppComponent {
         return races;
       })
     );
+
+    this.raceResults$ = combineLatest([
+      this.selectedSeason$,
+      this.selectedRace$,
+    ]).pipe(
+      switchMap(([season, round]) => {
+        let races: Observable<Result[]> = of([]);
+        if (round != '') {
+          races = api.GetRaceResults(season, round);
+        }
+        return races;
+      })
+    );
+
+    this.numFinished$ = this.raceResults$.pipe(
+      map((results) => {
+        return results.filter((value) => value.status == 'Finished').length;
+      })
+    );
+
+    this.numAccident$ = this.raceResults$.pipe(
+      map((results) => {
+        return results.filter((value) => value.status == 'Accident').length;
+      })
+    );
+    this.numPlusOne$ = this.raceResults$.pipe(
+      map((results) => {
+        return results.filter((value) => value.status == '+1 Lap').length;
+      })
+    );
+
+    this.driverStandings$ = combineLatest([
+      this.selectedSeason$,
+      this.selectedRace$,
+    ]).pipe(
+      switchMap(([season, round]) => {
+        let standings: Observable<DriverStanding[]> = of([]);
+        if (round != '') {
+          standings = api.GetDriverStandingsAfterRace(season, round);
+        }
+        return standings;
+      })
+    );
+
+    this.selectedRaceName$ = combineLatest([
+      this.racesPerSeason$,
+      this.selectedRace$,
+    ]).pipe(
+      map(([races, round]) => {
+        if (round == '') {
+          return '';
+        } else {
+          return races.find((r) => r.round == round)?.raceName ?? '';
+        }
+      })
+    );
   }
 
   seasonChanged(season: string) {
@@ -127,16 +192,19 @@ export class AppComponent {
     this.racesPageNumberSubject.next(0);
     this.driversPageNumberSubject.next(0);
     this.selectedRaceSubject.next('');
+    this.showDetailType = '';
   }
   raceItemsPerPageChanged(pageEvent: PageEvent) {
     this.racesItemsPerPageSubject.next(pageEvent.pageSize);
     this.racesPageNumberSubject.next(pageEvent.pageIndex);
+    this.showDetailType = '';
   }
   driverItemsPerPageChanged(pageEvent: PageEvent) {
     this.driversItemsPerPageSubject.next(pageEvent.pageSize);
     this.driversPageNumberSubject.next(pageEvent.pageIndex);
   }
-  setSelectedRace(round: string) {
+  setSelectedRace(round: string, type: DetailType) {
     this.selectedRaceSubject.next(round);
+    this.showDetailType = type;
   }
 }

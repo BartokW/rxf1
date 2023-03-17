@@ -72,7 +72,26 @@ describe('F1ApiService', () => {
     let sampleRaces: F1Root<RaceData> = {
       MRData: {
         total: '10',
-        RaceTable: { season: '1', Races: [] },
+        RaceTable: {
+          season: '1',
+          Races: [
+            {
+              Results: [],
+              season: '1',
+              round: '',
+              url: '',
+              raceName: '',
+              Circuit: {
+                circuitId: '',
+                url: '',
+                circuitName: '',
+                Location: { lat: '', long: '', locality: '', country: '' },
+              },
+              date: '',
+              time: '',
+            },
+          ],
+        },
         xmlns: '',
         series: '',
         url: '',
@@ -83,8 +102,7 @@ describe('F1ApiService', () => {
     httpClientSpy.get.and.returnValue(of(sampleRaces));
     service.GetRaceResults('2018', '1').subscribe((result) => {
       expect(result).toBeTruthy();
-      expect(result.data).toEqual([]);
-      expect(result.totalElements).toEqual(10);
+      expect(result).toEqual([]);
       done();
     });
   });
@@ -133,7 +151,11 @@ describe('F1ApiService', () => {
     let sampleRaces: F1Root<StandingsData> = {
       MRData: {
         total: '10',
-        StandingsTable: { season: '1', round: '1', StandingsLists: [] },
+        StandingsTable: {
+          season: '1',
+          round: '1',
+          StandingsLists: [{ season: '', round: '', DriverStandings: [] }],
+        },
         xmlns: '',
         series: '',
         url: '',
@@ -144,8 +166,7 @@ describe('F1ApiService', () => {
     httpClientSpy.get.and.returnValue(of(sampleRaces));
     service.GetDriverStandingsAfterRace('2018', '1').subscribe((result) => {
       expect(result).toBeTruthy();
-      expect(result.data).toEqual([]);
-      expect(result.totalElements).toEqual(10);
+      expect(result).toEqual([]);
       done();
     });
   });
